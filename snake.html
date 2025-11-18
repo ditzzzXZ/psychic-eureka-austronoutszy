@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game (Nokia Final)</title>
+    <style>
+        /* --- CSS INTERNAL DIMULAI DI SINI --- */
+        :root {
+            --nokia-green-dark: #375330; /* Warna gelap khas layar Nokia */
+            --nokia-green-light: #98af7b; /* Warna latar belakang layar */
+            --nokia-casing: #4a4a4a; /* Warna casing abu-abu gelap */
+            --grid-size: 18;
+            --cell-pixel: 15px;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #222;
+            font-family: 'Courier New', monospace; /* Font monospace untuk kesan jadul */
+        }
+
+        /* Container Ponsel (Casing) */
+        #nokia-phone {
+            background-color: var(--nokia-casing);
+            border: 8px solid #333;
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 300px; /* Lebar tetap untuk simulasi ponsel */
+            margin: 10px;
+        }
+
+        /* Bagian Atas Ponsel (Receiver) */
+        .receiver {
+            width: 50px;
+            height: 5px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        /* Layar Game */
+        #game-screen-container {
+            background-color: #000;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        #game-screen {
+            background-color: var(--nokia-green-light);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+            width: calc(var(--grid-size) * var(--cell-pixel));
+            height: calc(var(--grid-size) * var(--cell-pixel));
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(var(--grid-size), 1fr);
+            border: 2px solid var(--nokia-green-dark);
+            overflow: hidden;
+        }
+
+        /* Elemen Game (Piksel Sederhana) */
+        .cell {
+            width: var(--cell-pixel);
+            height: var(--cell-pixel);
+            box-sizing: border-box;
+        }
+
+        .snake {
+            background-color: var(--nokia-green-dark);
+        }
+
+        .food {
+            background-color: #ff0000; /* Merah terang */
+            /* Piksel Sederhana - tanpa border aneh */
+        }
+
+        /* Status Bar (Info Game) */
+        #status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 25px;
+            color: var(--nokia-green-dark);
+            font-size: 14px;
+            padding: 5px 0;
+            margin-bottom: 10px;
+        }
+        #nokia-logo { font-size: 10px; color: #777; }
+
+        /* Keypad Styling */
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        .key {
+            background-color: #666;
+            color: #fff;
+            border: 1px solid #777;
+            border-radius: 50%; /* Membuat tombol lebih bulat */
+            height: 45px;
+            width: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.1s;
+            box-shadow: 0 3px #444; /* Efek 3D */
+            margin: auto;
+        }
+
+        .key:active {
+            background-color: #888;
+            box-shadow: 0 1px #444;
+            transform: translateY(2px);
+        }
+        
+        /* Tombol Navigasi Tengah (Keypad Kontrol) */
+        .key[data-direction] {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        #key-start {
+             grid-column: 1 / 4;
+             background-color: #e74c3c;
+             border-radius: 8px;
+             width: 100%;
+             margin-top: 15px;
+             height: 40px;
+             box-shadow: 0 3px #c0392b;
+        }
+        #key-start:active {
+            box-shadow: 0 1px #c0392b;
+        }
+
+        /* Tombol Fullscreen */
+        #fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* --- CSS INTERNAL SELESAI --- */
+    </style>
+</head>
+<body>
+
+    <button id="fullscreen-btn">▶️ FULLSCREEN</button>
+
+    <div id="nokia-phone">
+        <div class="receiver"></div>
+        <div id="status-bar">
+            <span id="nokia-logo">N O K I A</span>
+            <span id="score-display">SKOR: 0</span>
+        </div>
+        
+        <div id="game-screen-container">
+            <div id="game-screen">
+                </div>
+        </div>
+
+        <div id="keypad">
+            <div class="key" data-key="7">7</div>
+            <div class="key" data-key="8" data-direction="up">▲</div>
+            <div class="key" data-key="9">9</div>
+
+            <div class="key" data-key="4" data-direction="left">◄</div>
+            <div class="key" data-key="5">5</div>
+            <div class="key" data-key="6" data-direction="right">►</div>
+
+            <div class="key" data-key="1">1</div>
+            <div class="key" data-key="2" data-direction="down">▼</div>
+            <div class="key" data-key="3">3</div>
+
+            <div id="key-start" class="key" data-key="enter">START / RESTART</div>
+        </div>
+    </div>
+
+    <script>
+        /* --- JAVASCRIPT INTERNAL DIMULAI DI SINI --- */
+        const GRID_DIMENSION = 18;
+        const gameScreen = document.getElementById('game-screen');
+        const scoreDisplay = document.getElementById('score-display');
+        const keypadKeys = document.querySelectorAll('.key');
+
+        let snake, food, direction, score, gameLoop, speed;
+
+        function initializeGame() {
+            snake = [{ x: 9, y: 9 }];
+            food = {};
+            direction = { x: 0, y: 0 }; // Ular diam saat awal
+            score = 0;
+            speed = 200;
+            clearInterval(gameLoop);
+            scoreDisplay.textContent = `SKOR: 0`;
+        }
+
+        // 1. Fullscreen Toggle
+        document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            const elem = document.getElementById('nokia-phone');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                elem.requestFullscreen().catch(err => {
+                    alert(`Gagal mengaktifkan Fullscreen: ${err.message}`);
+                });
+            }
+        });
+
+        // 2. Inisialisasi Papan Permainan
+        function createGrid() {
+            gameScreen.innerHTML = '';
+            for (let y = 0; y < GRID_DIMENSION; y++) {
+                for (let x = 0; x < GRID_DIMENSION; x++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.id = `cell-${x}-${y}`;
+                    gameScreen.appendChild(cell);
+                }
+            }
+        }
+
+        // 3. Menempatkan Makanan
+        function placeFood() {
+            let newFood;
+            do {
+                newFood = {
+                    x: Math.floor(Math.random() * GRID_DIMENSION),
+                    y: Math.floor(Math.random() * GRID_DIMENSION)
+                };
+            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+            food = newFood;
+        }
+
+        // 4. Menggambar Ular dan Makanan (Piksel)
+        function draw() {
+            // Hapus kelas dari semua sel
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('snake', 'food');
+            });
+
+            // Gambar Ular
+            snake.forEach(segment => {
+                const cell = document.getElementById(`cell-${segment.x}-${segment.y}`);
+                if (cell) cell.classList.add('snake');
+            });
+
+            // Gambar Makanan
+            const foodCell = document.getElementById(`cell-${food.x}-${food.y}`);
+            if (foodCell) foodCell.classList.add('food');
+        }
+
+        // 5. Logika Pergerakan
+        function move() {
+            if (direction.x === 0 && direction.y === 0) return;
+
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+            // Cek Tabrakan Dinding
+            if (head.x < 0 || head.x >= GRID_DIMENSION || head.y < 0 || head.y >= GRID_DIMENSION) {
+                gameOver();
+                return;
+            }
+
+            // Cek Tabrakan Diri Sendiri
+            if (snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
+                gameOver();
+                return;
+            }
+
+            snake.unshift(head);
+
+            // Cek Makan Makanan
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                placeFood();
+                scoreDisplay.textContent = `SKOR: ${score}`;
+
+                // Percepat
+                clearInterval(gameLoop);
+                speed = Math.max(80, speed - 5);
+                gameLoop = setInterval(gameTick, speed);
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        // 6. Mengatur Input Keypad
+        function changeDirection(newDir) {
+            const currentDir = direction;
+            // Cegah putar balik 180 derajat
+            if (newDir.x === -currentDir.x && newDir.y === -currentDir.y) return; 
+            
+            // Jika ini gerakan pertama, atur kecepatan awal
+            if (currentDir.x === 0 && currentDir.y === 0) {
+                startGame(newDir);
+                return;
+            }
+
+            direction = newDir;
+        }
+
+        function handleInput(key) {
+            let newDir = null;
+            switch (key) {
+                case 'ArrowUp':
+                case '8':
+                    newDir = { x: 0, y: -1 }; break;
+                case 'ArrowDown':
+                case '2':
+                    newDir = { x: 0, y: 1 }; break;
+                case 'ArrowLeft':
+                case '4':
+                    newDir = { x: -1, y: 0 }; break;
+                case 'ArrowRight':
+                case '6':
+                    newDir = { x: 1, y: 0 }; break;
+                case 'Enter':
+                    if (direction.x === 0 && direction.y === 0) startGame({ x: 0, y: -1 });
+                    break;
+                default: return;
+            }
+
+            if (newDir) changeDirection(newDir);
+        }
+
+        // Event Listener untuk Keyboard
+        document.addEventListener('keydown', e => handleInput(e.key));
+
+        // Event Listener untuk Keypad Virtual (Mobile-Friendly)
+        keypadKeys.forEach(key => {
+            key.addEventListener('click', () => {
+                const dir = key.dataset.direction;
+                const keyId = key.dataset.key;
+
+                if (dir) {
+                    let newDir;
+                    if (dir === 'up') newDir = { x: 0, y: -1 };
+                    else if (dir === 'down') newDir = { x: 0, y: 1 };
+                    else if (dir === 'left') newDir = { x: -1, y: 0 };
+                    else if (dir === 'right') newDir = { x: 1, y: 0 };
+                    
+                    if (newDir) changeDirection(newDir);
+                } else if (keyId === 'enter') {
+                    handleInput('Enter');
+                }
+            });
+        });
+
+        // 7. Fungsi Game Over
+        function gameOver() {
+            clearInterval(gameLoop);
+            alert(`SNAKE K.O. - Skor Akhir: ${score}. Tekan OK atau tombol START untuk balas dendam!`);
+            initializeGame();
+            draw();
+        }
+
+        // 8. Tick Utama Game
+        function gameTick() {
+            move();
+        }
+
+        // 9. Memulai/Merestart Game
+        function startGame(initialDir = { x: 0, y: -1 }) {
+            initializeGame();
+            placeFood();
+            direction = initialDir;
+            gameLoop = setInterval(gameTick, speed);
+        }
+
+        // Inisialisasi tampilan awal
+        createGrid();
+        initializeGame();
+        placeFood();
+        draw();
+        /* --- JAVASCRIPT INTERNAL SELESAI --- */
+    </script>
+</body>
+  </html>
+  
