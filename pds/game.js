@@ -66,8 +66,8 @@ function updateEnemies() {
   enemies.forEach(e => {
     const dx = player.x - e.x, dy = player.y - e.y;
     if (Math.abs(dx) + Math.abs(dy) < 6) {
-      if (Math.abs(dx) > Math.abs(dy)) e.x += Math.sign(dx);
-      else e.y += Math.sign(dy);
+      if (Math.abs(dx) > Math.abs(dy) && map[e.y][e.x + Math.sign(dx)] === 0) e.x += Math.sign(dx);
+      else if (map[e.y + Math.sign(dy)]?.[e.x] === 0) e.y += Math.sign(dy);
     }
     if (e.x === player.x && e.y === player.y) {
       if (player.hp > 0) player.hp--;
@@ -96,21 +96,26 @@ function craftWeapon() {
   draw();
 }
 
-document.querySelectorAll(".pad button").forEach(btn => {
-  btn.addEventListener("touchstart", e => {
-    const dir = e.target.dataset.dir;
-    if (dir === "up") move(0, -1);
-    if (dir === "down") move(0, 1);
-    if (dir === "left") move(-1, 0);
-    if (dir === "right") move(1, 0);
+function bindControls() {
+  const buttons = document.querySelectorAll(".pad button, #actionA, #actionB");
+  buttons.forEach(btn => {
+    btn.addEventListener("touchstart", e => {
+      e.preventDefault();
+      const dir = e.target.dataset.dir;
+      if (dir === "up") move(0, -1);
+      else if (dir === "down") move(0, 1);
+      else if (dir === "left") move(-1, 0);
+      else if (dir === "right") move(1, 0);
+      else if (e.target.id === "actionA") shoot();
+      else if (e.target.id === "actionB") craftWeapon();
+    });
   });
-});
-document.getElementById("actionA").addEventListener("touchstart", shoot);
-document.getElementById("actionB").addEventListener("touchstart", craftWeapon);
-document.getElementById("pauseBtn").addEventListener("click", () => {
-  paused = !paused;
-  document.getElementById("pauseBtn").textContent = paused ? "▶" : "⏸";
-});
+  document.getElementById("pauseBtn").addEventListener("click", () => {
+    paused = !paused;
+    document.getElementById("pauseBtn").textContent = paused ? "▶" : "⏸";
+  });
+}
 
 generateMaze();
+bindControls();
 draw();
