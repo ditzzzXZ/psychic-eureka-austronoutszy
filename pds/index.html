@@ -1,29 +1,30 @@
-<!-- index.html -->
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="id">
 <head>
-  <meta charset="utf-8"/>
-  <title>Pocket Dungeon's</title>
+  <meta charset="UTF-8" />
+  <title>pocket dungeons</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
   <style>
     body { margin:0; background:#0e0f13; color:#fff; font-family:sans-serif; }
-    #hud { padding:.5rem; }
-    canvas { background:#121420; display:block; margin:0 auto; touch-action:none; }
+    canvas { display:block; margin:0 auto; background:#121420; touch-action:none; }
+    #hud { text-align:center; padding:.5rem; font-size:1rem; }
     #controller {
       position:fixed; bottom:1rem; left:0; right:0;
       display:flex; justify-content:space-between; padding:0 1rem;
     }
     .pad { display:grid; grid-template-columns:60px 60px 60px; grid-template-rows:60px 60px 60px; gap:5px; }
-    .pad button, .buttons button {
+    .pad button, .buttons button, #pauseBtn {
       width:60px; height:60px; border-radius:50%; border:none;
       background:#2b2d36; color:#fff; font-size:1.2rem;
     }
     .buttons { display:flex; flex-direction:column; gap:10px; }
+    #pauseBtn { position:fixed; top:1rem; right:1rem; width:50px; height:50px; border-radius:50%; }
   </style>
 </head>
 <body>
   <canvas id="game" width="360" height="480"></canvas>
-  <div id="hud">HP:<span id="hp">10</span> Gold:<span id="gold">0</span></div>
+  <div id="hud">HP:<span id="hp">10</span> Gold:<span id="gold">0</span> Weapon:<span id="weapon">0</span></div>
+  <button id="pauseBtn">⏸</button>
   <div id="controller">
     <div class="pad">
       <div></div><button data-dir="up">▲</button><div></div>
@@ -37,4 +38,4 @@
   </div>
   <script src="game.js"></script>
 </body>
-    </html>
+</html>
